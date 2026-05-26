@@ -193,8 +193,11 @@ async function generateQuestions() {
   ];
 }
 
+function sleep(ms) { return new Promise(function(r){ setTimeout(r, ms); }); }
+
 async function evaluateAnswer(question, answer) {
   var pages = await selectPages(question, 3);
+  await sleep(1000);
   var context = getPages(pages);
   var system = 'Du ar en pedagogisk AM-larare. Svara ALLTID pa svenska.';
   var prompt = 'Baserat pa denna wiki:\n' + context + '\n\nFraga: "' + question + '"\nSvar: "' + answer + '"\n\nReturnera JSON: {"verdict":"correct|partial|incorrect","feedback":"...","score":1}';
