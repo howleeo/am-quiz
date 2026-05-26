@@ -136,7 +136,7 @@ async function callClaude(system, messages, json) {
   var res = await fetch('https://am-quiz-proxy.joh-leo.workers.dev/', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1024,system:sys,messages:messages})
+    body: JSON.stringify({model:'claude-haiku-4-5',max_tokens:1024,system:sys,messages:messages})
   });
   if (!res.ok) { var e = await res.text(); throw new Error('Proxy error: ' + res.status + ' ' + e); }
   var data = await res.json();
