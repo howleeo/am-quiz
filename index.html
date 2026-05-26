@@ -305,7 +305,7 @@ async function sendChat() {
     var pages = await selectPages(msg, 4);
     var context = getPages(pages);
     var system = 'Du ar en pedagogisk AM-guide. Svara alltid pa svenska. Basera svar pa denna wiki:\n\n' + context + '\n\nOm nagot inte finns i wikin, sag det arligt. Forklara begrepp tydligt for nyborjare.';
-    var reply = await callClaude(system, chatHistory, false);
+    var reply = await callClaude(system, chatHistory, true);
     chatHistory.push({role:'assistant', content: reply});
     thinking.textContent = reply;
     thinking.classList.remove('thinking');
