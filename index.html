@@ -158,7 +158,14 @@ function switchTab(tab) {
 async function generateQuestions() {
   var prompt = 'Generera exakt 6 quizfrågor baserade på wiki-innehållet. Krav: 2 grundläggande, 3 mellansvåra, 1 avancerad. Blanda definitioner, koncept, tillämpning. Returnera EXAKT detta JSON: [{"q": "Frågetexten?", "topic": "Ämne"}, ...]';
   var raw = await callClaude(QUIZ_SYSTEM, [{role:'user',content:prompt}], true);
-  try { return JSON.parse(raw); }
+  try {
+    var cleaned = raw.trim();
+    var match = cleaned.match(/\[[\s\S]*\]/);
+    if (match) cleaned = match[0];
+    var parsed = JSON.parse(cleaned);
+    if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].q) return parsed;
+    throw new Error('bad format');
+  }
   catch { return [{"q":"Vad är den formella ISO 55000-definitionen av asset management?","topic":"Definition"},{"q":"Förklara skillnaden mellan output och outcome.","topic":"Principer"},{"q":"Vilka sex kapitalformer identifierar 6 Capitals-ramverket?","topic":"6 Capitals"},{"q":"Vad är ett Value Framework?","topic":"VF"},{"q":"Vilken kapitalform saknas nästan helt i UIC VF?","topic":"Syntes"},{"q":"Varför kostar dålig datakvalitet MER än god?","topic":"Data"}]; }
 }
 
