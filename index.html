@@ -128,15 +128,20 @@ var questions = [], currentQ = 0, scores = [], answers = [], feedbacks = [];
 
 async function callClaude(system, messages, useHaiku) {
   var model = useHaiku ? 'claude-haiku-4-5' : 'claude-sonnet-4-6';
-  var res = await fetch(WORKER_URL, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({model: model, max_tokens: 1024, system: system, messages: messages})
-  });
-  if (!res.ok) { var e = await res.text(); throw new Error('Proxy error ' + res.status + ': ' + e); }
-  var data = await res.json();
-  if (data.error) throw new Error(JSON.stringify(data.error));
-  return (data.content && data.content[0] && data.content[0].text) || '';
+  for (var attempt = 0; attempt < 3; attempt++) {
+    var res = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({model: model, max_tokens: 1024, system: system, messages: messages})
+    });
+    if (res.status === 429) { await sleep(5000); continue; }
+    if (!res.ok) { var e = await res.text(); throw new Error('Proxy error ' + res.status + ': ' + e); }
+    var data = await res.json();
+    if (data.error && data.error.type === 'rate_limit_error') { await sleep(5000); continue; }
+    if (data.error) throw new Error(JSON.stringify(data.error));
+    return (data.content && data.content[0] && data.content[0].text) || '';
+  }
+  throw new Error('Rate limit - försök igen om en stund');
 }
 
 function getPages(filenames) {
@@ -307,7 +312,7 @@ async function sendChat() {
     var pages = await selectPages(msg, 4);
     var context = getPages(pages);
     var system = 'Du ar en pedagogisk AM-guide. Svara alltid pa svenska. Basera svar pa denna wiki:\n\n' + context + '\n\nOm nagot inte finns i wikin, sag det arligt. Forklara begrepp tydligt for nyborjare.';
-    var reply = await callClaude(system, chatHistory, true);
+    var reply = await callClaude(system, chatHistory, false);
     chatHistory.push({role:'assistant', content: reply});
     thinking.textContent = reply;
     thinking.classList.remove('thinking');
