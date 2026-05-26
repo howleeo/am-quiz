@@ -170,9 +170,10 @@ function switchTab(tab) {
   document.getElementById('chat-content').classList.toggle('hidden', tab !== 'chat');
 }
 
+var cachedQuizPages = [];
 async function generateQuestions() {
-  var pages = await selectPages('asset management concepts principles frameworks value ISO', 8);
-  var context = getPages(pages);
+  cachedQuizPages = await selectPages('asset management concepts principles frameworks value ISO', 8);
+  var context = getPages(cachedQuizPages);
   var system = 'Du ar en quiz-facilitator i Asset Management. Svara ALLTID pa svenska.';
   var prompt = 'Baserat pa dessa wiki-sidor, generera exakt 6 quizfragor. 2 grundlaggande, 3 mellansvaara, 1 avancerad. Returnera ENDAST en JSON-array: [{"q":"Fragan?","topic":"amne"}]\n\nWiki:\n' + context;
   var raw = await callClaude(system, [{role:'user',content:prompt}], true);
@@ -196,9 +197,7 @@ async function generateQuestions() {
 function sleep(ms) { return new Promise(function(r){ setTimeout(r, ms); }); }
 
 async function evaluateAnswer(question, answer) {
-  var pages = await selectPages(question, 3);
-  await sleep(1000);
-  var context = getPages(pages);
+  var context = getPages(cachedQuizPages);
   var system = 'Du ar en pedagogisk AM-larare. Svara ALLTID pa svenska.';
   var prompt = 'Baserat pa denna wiki:\n' + context + '\n\nFraga: "' + question + '"\nSvar: "' + answer + '"\n\nReturnera JSON: {"verdict":"correct|partial|incorrect","feedback":"...","score":1}';
   var raw = await callClaude(system, [{role:'user',content:prompt}], true);
